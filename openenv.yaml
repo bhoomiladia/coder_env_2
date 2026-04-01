@@ -1,0 +1,68 @@
+version: "2.0.0"
+name: "CodeDebtRefactor"
+description: >
+  An RL environment for training agents to detect and remediate technical debt
+  in Python codebases. Agents navigate broken repositories, interpret diagnostic
+  logs (syntax errors, security alerts, logic bugs), and apply precise code edits
+  to achieve a functional, secure state.
+
+entry_point: "server.environment:CodeDebtEnvironment"
+
+action_space:
+  type: "WRITE_FILE | READ_FILE | RUN_LINTER | RUN_TESTS | LIST_FILES"
+  description: >
+    Agent can write code to specific files, read file contents, run a
+    multi-signal linter (syntax + security + logic), execute virtual
+    test suites, or list all available files.
+
+observation_space:
+  description: >
+    Includes terminal logs, current file contents, structured diagnostics
+    (per-issue severity/category/message), a multi-signal reward breakdown
+    (syntax, security, logic, similarity), and a list of available files.
+
+reward:
+  description: >
+    Weighted multi-signal reward:
+      - syntax (0.15): fraction of files that parse without errors
+      - security (0.25): fraction of files free from security anti-patterns
+      - logic (0.20): fraction of files free from logic bugs
+      - similarity (0.40): textual similarity to the reference solution
+
+tasks:
+  - id: 0
+    name: "Easy: Fix Missing Colon"
+    difficulty: "easy"
+    category: "syntax"
+  - id: 1
+    name: "Medium: Fix Billing Logic"
+    difficulty: "medium"
+    category: "logic"
+  - id: 2
+    name: "Medium: Fix User Factory"
+    difficulty: "medium"
+    category: "logic"
+  - id: 3
+    name: "Hard: SQL Injection + Broken Model"
+    difficulty: "hard"
+    category: "security"
+  - id: 4
+    name: "Hard: Config + Cache + Recursion"
+    difficulty: "hard"
+    category: "security"
+  - id: 5
+    name: "Hard: Auth Overhaul"
+    difficulty: "hard"
+    category: "security"
+  - id: 6
+    name: "Easy: Fix Indentation"
+    difficulty: "easy"
+    category: "syntax"
+  - id: 7
+    name: "Easy: Fix String Literal"
+    difficulty: "easy"
+    category: "syntax"
+  - id: 8
+    name: "Medium: Fix Validator"
+    difficulty: "medium"
+    category: "logic"

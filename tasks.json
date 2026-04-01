@@ -1,0 +1,437 @@
+[
+  {
+    "task_id": 0,
+    "difficulty": "easy",
+    "category": "syntax",
+    "description": "Fix the SyntaxError in app.py. A colon is missing in the function definition.",
+    "hints": ["Look at the function definition line — Python requires a colon after the parameter list."],
+    "initial_code": {
+      "app.py": "def calculate_debt(amount, rate)\n    return amount * rate"
+    },
+    "solution": {
+      "app.py": "def calculate_debt(amount, rate):\n    return amount * rate"
+    },
+    "tests": {
+      "app.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true,
+          "contains": ["def calculate_debt"],
+          "hint": "Code must be valid Python syntax."
+        },
+        {
+          "name": "has_colon",
+          "contains": ["def calculate_debt(amount, rate):"],
+          "hint": "Function definition must end with a colon."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 1,
+    "difficulty": "medium",
+    "category": "logic",
+    "description": "Fix multiple issues in billing.py: wrong operator for tax calculation (should multiply, not add), discount should be subtracted (not added), and both functions are missing return statements.",
+    "hints": [
+      "Tax is usually computed as price * tax_rate, not price + tax_rate.",
+      "A discount should reduce the total, not increase it.",
+      "Functions that compute values should return them."
+    ],
+    "initial_code": {
+      "billing.py": "def calculate_total(price, tax_rate):\n    total = price + tax_rate\n    discount = total * 0.1\n    final = total + discount\n\ndef apply_discount(amount):\n    discounted = amount * 0.9\n"
+    },
+    "solution": {
+      "billing.py": "def calculate_total(price, tax_rate):\n    total = price * tax_rate\n    discount = total * 0.1\n    final = total - discount\n    return final\n\ndef apply_discount(amount):\n    discounted = amount * 0.9\n    return discounted\n"
+    },
+    "tests": {
+      "billing.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true,
+          "hint": "Code must parse without errors."
+        },
+        {
+          "name": "calculate_total_uses_multiply",
+          "contains": ["price * tax_rate"],
+          "not_contains": ["price + tax_rate"],
+          "hint": "Tax is calculated by multiplication, not addition."
+        },
+        {
+          "name": "discount_subtracted",
+          "contains": ["total - discount"],
+          "not_contains": ["total + discount"],
+          "hint": "Discount should be subtracted from total."
+        },
+        {
+          "name": "calculate_total_returns",
+          "contains": ["return final"],
+          "hint": "calculate_total must return the final value."
+        },
+        {
+          "name": "apply_discount_returns",
+          "contains": ["return discounted"],
+          "hint": "apply_discount must return the discounted amount."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 2,
+    "difficulty": "medium",
+    "category": "logic",
+    "description": "Fix the debt in user.py: remove duplicate logic, fix the wrong comparison operator (seniors are >=65), correct the default mutable argument, and handle the 'minor' case.",
+    "hints": [
+      "Mutable default arguments (like []) are shared between calls — use None.",
+      "Seniors are typically >=65; adults are >=18.",
+      "Don't forget the 'minor' case for anyone under 18."
+    ],
+    "initial_code": {
+      "user.py": "def create_user(name, age, tags=[]):\n    if age > 18:\n        status = 'adult'\n    if age > 18:\n        status = 'senior'\n    tags.append(status)\n    return {'name': name, 'age': age, 'status': status, 'tags': tags}\n"
+    },
+    "solution": {
+      "user.py": "def create_user(name, age, tags=None):\n    if tags is None:\n        tags = []\n    if age >= 65:\n        status = 'senior'\n    elif age >= 18:\n        status = 'adult'\n    else:\n        status = 'minor'\n    tags.append(status)\n    return {'name': name, 'age': age, 'status': status, 'tags': tags}\n"
+    },
+    "tests": {
+      "user.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "no_mutable_default",
+          "contains": ["tags=None"],
+          "not_contains": ["tags=[]"],
+          "hint": "Use None as the default, not a mutable list."
+        },
+        {
+          "name": "none_guard",
+          "contains": ["if tags is None"],
+          "hint": "Guard against None and initialize a fresh list."
+        },
+        {
+          "name": "senior_threshold",
+          "contains": ["age >= 65"],
+          "hint": "Senior status should check for age >= 65."
+        },
+        {
+          "name": "handles_minor",
+          "contains": ["'minor'"],
+          "hint": "Must handle the minor case (age < 18)."
+        },
+        {
+          "name": "no_duplicate_logic",
+          "not_contains": ["if age > 18:\n        status = 'adult'\n    if age > 18:"],
+          "hint": "Remove duplicate conditional blocks."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 3,
+    "difficulty": "hard",
+    "category": "security",
+    "description": "Fix technical debt across two files: db.py has a dangerous string-formatted SQL query (use parameterized query) and conn.close is never called. models.py has a broken __repr__, missing type hints, and an incorrect equality check.",
+    "hints": [
+      "String-concatenated SQL is vulnerable to SQL injection — use '?' placeholders.",
+      "conn.close without parentheses doesn't close the connection.",
+      "__repr__ should return a formatted string like f'User({self.name})'.",
+      "is_same should compare IDs, not mixed attributes."
+    ],
+    "initial_code": {
+      "db.py": "import sqlite3\n\ndef get_user(username):\n    conn = sqlite3.connect('app.db')\n    cursor = conn.cursor()\n    query = \"SELECT * FROM users WHERE username = '\" + username + \"'\"\n    cursor.execute(query)\n    result = cursor.fetchone()\n    conn.close\n    return result\n",
+      "models.py": "class User:\n    def __init__(self, id, name, email):\n        self.id = id\n        self.name = name\n        self.email = email\n\n    def __repr__(self):\n        return 'User' + self.name\n\n    def is_same(self, other):\n        return self.id == other.name\n"
+    },
+    "solution": {
+      "db.py": "import sqlite3\n\ndef get_user(username: str):\n    conn = sqlite3.connect('app.db')\n    cursor = conn.cursor()\n    query = \"SELECT * FROM users WHERE username = ?\"\n    cursor.execute(query, (username,))\n    result = cursor.fetchone()\n    conn.close()\n    return result\n",
+      "models.py": "class User:\n    def __init__(self, id: int, name: str, email: str):\n        self.id = id\n        self.name = name\n        self.email = email\n\n    def __repr__(self) -> str:\n        return f'User({self.name})'\n\n    def is_same(self, other: 'User') -> bool:\n        return self.id == other.id\n"
+    },
+    "tests": {
+      "db.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "no_sql_injection",
+          "contains": ["username = ?"],
+          "not_contains": ["+ username +"],
+          "hint": "Use parameterized '?' placeholders instead of string concatenation."
+        },
+        {
+          "name": "parameterized_execute",
+          "contains": ["cursor.execute(query, (username,))"],
+          "hint": "Pass parameters as a tuple to cursor.execute()."
+        },
+        {
+          "name": "conn_closed_properly",
+          "contains": ["conn.close()"],
+          "hint": "Call conn.close() with parentheses."
+        },
+        {
+          "name": "type_hint_username",
+          "contains": ["username: str"],
+          "hint": "Add type hint to the username parameter."
+        }
+      ],
+      "models.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "repr_formatted",
+          "contains": ["f'User({self.name})'"],
+          "not_contains": ["'User' + self.name"],
+          "hint": "__repr__ should use an f-string like f'User({self.name})'."
+        },
+        {
+          "name": "is_same_compares_ids",
+          "contains": ["other.id"],
+          "not_contains": ["other.name"],
+          "hint": "is_same should compare self.id with other.id, not other.name."
+        },
+        {
+          "name": "type_hints_init",
+          "contains": ["id: int", "name: str", "email: str"],
+          "hint": "Add type hints to __init__ parameters."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 4,
+    "difficulty": "hard",
+    "category": "security",
+    "description": "Fix technical debt across three files: config.py has hardcoded secrets and no environment variable fallback, cache.py has a broken cache that never expires, and utils.py has a recursive function with no base case (missing else branch).",
+    "hints": [
+      "Secrets should come from os.environ.get() with safe defaults.",
+      "Cache entries need an 'expires_at' timestamp; get_cache should check it.",
+      "The flatten function appends every item — the else branch is missing."
+    ],
+    "initial_code": {
+      "config.py": "DB_HOST = 'localhost'\nDB_PORT = 5432\nSECRET_KEY = 'hardcoded_secret_123'\nDEBUG = True\nALLOWED_HOSTS = '*'\n",
+      "cache.py": "import time\n\n_cache = {}\n\ndef set_cache(key, value, ttl=60):\n    _cache[key] = value\n\ndef get_cache(key):\n    if key in _cache:\n        return _cache[key]\n    return None\n",
+      "utils.py": "def flatten(lst):\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        result.append(item)\n    return result\n"
+    },
+    "solution": {
+      "config.py": "import os\n\nDB_HOST = os.environ.get('DB_HOST', 'localhost')\nDB_PORT = int(os.environ.get('DB_PORT', 5432))\nSECRET_KEY = os.environ.get('SECRET_KEY')\nDEBUG = os.environ.get('DEBUG', 'False') == 'True'\nALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')\n",
+      "cache.py": "import time\n\n_cache = {}\n\ndef set_cache(key, value, ttl=60):\n    _cache[key] = {'value': value, 'expires_at': time.time() + ttl}\n\ndef get_cache(key):\n    if key in _cache:\n        entry = _cache[key]\n        if time.time() < entry['expires_at']:\n            return entry['value']\n        del _cache[key]\n    return None\n",
+      "utils.py": "def flatten(lst):\n    result = []\n    for item in lst:\n        if isinstance(item, list):\n            result.extend(flatten(item))\n        else:\n            result.append(item)\n    return result\n"
+    },
+    "tests": {
+      "config.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "uses_environ",
+          "contains": ["os.environ.get"],
+          "hint": "Use os.environ.get() for configuration values."
+        },
+        {
+          "name": "no_hardcoded_secret",
+          "not_contains": ["'hardcoded_secret_123'"],
+          "hint": "Remove hardcoded secrets."
+        },
+        {
+          "name": "debug_from_env",
+          "not_contains": ["DEBUG = True"],
+          "hint": "DEBUG should be read from environment, not hardcoded to True."
+        },
+        {
+          "name": "allowed_hosts_not_wildcard",
+          "not_contains": ["ALLOWED_HOSTS = '*'"],
+          "hint": "ALLOWED_HOSTS should not be a wildcard."
+        }
+      ],
+      "cache.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "stores_expiry",
+          "contains": ["expires_at"],
+          "hint": "Cache entries must store an expiration timestamp."
+        },
+        {
+          "name": "checks_expiry",
+          "contains": ["time.time()"],
+          "hint": "get_cache must check if the entry has expired."
+        },
+        {
+          "name": "deletes_expired",
+          "contains": ["del _cache[key]"],
+          "hint": "Expired entries should be deleted."
+        }
+      ],
+      "utils.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "has_else_branch",
+          "contains": ["else:"],
+          "hint": "Non-list items should only be appended in an else branch."
+        },
+        {
+          "name": "correct_append",
+          "contains": ["else:\n            result.append(item)"],
+          "hint": "result.append should be inside the else branch."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 5,
+    "difficulty": "hard",
+    "category": "security",
+    "description": "Fix auth.py: the password hashing uses md5 (insecure — use sha256), tokens are generated with random (not cryptographically secure — use secrets), session expiry is never checked, and logout doesn't clear the session.",
+    "hints": [
+      "MD5 is broken — use hashlib.sha256 instead.",
+      "Python's random module is NOT cryptographically secure — use secrets.token_hex().",
+      "Sessions should expire after a TTL; is_authenticated must check this.",
+      "logout must actually delete the session, not just print."
+    ],
+    "initial_code": {
+      "auth.py": "import hashlib\nimport random\nimport string\nfrom datetime import datetime\n\nsessions = {}\n\ndef hash_password(password):\n    return hashlib.md5(password.encode()).hexdigest()\n\ndef generate_token():\n    return ''.join(random.choices(string.ascii_letters, k=16))\n\ndef login(username, password_hash):\n    token = generate_token()\n    sessions[token] = {'user': username, 'created_at': datetime.now()}\n    return token\n\ndef is_authenticated(token):\n    return token in sessions\n\ndef logout(token):\n    print(f'{token} logged out')\n"
+    },
+    "solution": {
+      "auth.py": "import hashlib\nimport secrets\nimport string\nfrom datetime import datetime, timedelta\n\nsessions = {}\nSESSION_TTL_MINUTES = 30\n\ndef hash_password(password):\n    return hashlib.sha256(password.encode()).hexdigest()\n\ndef generate_token():\n    return secrets.token_hex(32)\n\ndef login(username, password_hash):\n    token = generate_token()\n    sessions[token] = {'user': username, 'created_at': datetime.now()}\n    return token\n\ndef is_authenticated(token):\n    if token not in sessions:\n        return False\n    created_at = sessions[token]['created_at']\n    if datetime.now() - created_at > timedelta(minutes=SESSION_TTL_MINUTES):\n        del sessions[token]\n        return False\n    return True\n\ndef logout(token):\n    if token in sessions:\n        del sessions[token]\n"
+    },
+    "tests": {
+      "auth.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "no_md5",
+          "not_contains": ["hashlib.md5"],
+          "contains": ["hashlib.sha256"],
+          "hint": "Replace MD5 with SHA-256."
+        },
+        {
+          "name": "uses_secrets",
+          "contains": ["secrets"],
+          "not_contains": ["random.choices"],
+          "hint": "Use the secrets module for cryptographically secure tokens."
+        },
+        {
+          "name": "session_expiry_check",
+          "contains": ["timedelta"],
+          "hint": "is_authenticated must check session expiry using timedelta."
+        },
+        {
+          "name": "logout_deletes_session",
+          "contains": ["del sessions[token]"],
+          "not_contains": ["print(f'{token} logged out')"],
+          "hint": "logout must delete the session, not just print."
+        },
+        {
+          "name": "session_ttl_defined",
+          "contains": ["SESSION_TTL_MINUTES"],
+          "hint": "Define a SESSION_TTL_MINUTES constant."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 6,
+    "difficulty": "easy",
+    "category": "syntax",
+    "description": "Fix the IndentationError in formatter.py. The return statement is at the wrong indentation level.",
+    "hints": ["Python requires consistent indentation — the return should align with the body of the function."],
+    "initial_code": {
+      "formatter.py": "def format_name(first, last):\n    full = first.strip() + ' ' + last.strip()\nreturn full.title()"
+    },
+    "solution": {
+      "formatter.py": "def format_name(first, last):\n    full = first.strip() + ' ' + last.strip()\n    return full.title()"
+    },
+    "tests": {
+      "formatter.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true,
+          "hint": "Code must parse without IndentationError."
+        },
+        {
+          "name": "return_indented",
+          "contains": ["    return full.title()"],
+          "hint": "Return statement must be indented inside the function."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 7,
+    "difficulty": "easy",
+    "category": "syntax",
+    "description": "Fix the string literal error in greeter.py. An f-string has mismatched quotes.",
+    "hints": ["When using f-strings, make sure the outer and inner quotes don't conflict."],
+    "initial_code": {
+      "greeter.py": "def greet(name):\n    return f\"Hello, {name}! Welcome to \"our\" platform.\""
+    },
+    "solution": {
+      "greeter.py": "def greet(name):\n    return f'Hello, {name}! Welcome to \"our\" platform.'"
+    },
+    "tests": {
+      "greeter.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true,
+          "hint": "Code must parse without SyntaxError."
+        },
+        {
+          "name": "has_f_string",
+          "contains": ["f'"],
+          "hint": "Use an f-string for the greeting."
+        }
+      ]
+    }
+  },
+  {
+    "task_id": 8,
+    "difficulty": "medium",
+    "category": "logic",
+    "description": "Fix the validator.py: the email regex is wrong (allows spaces), the age validator has an off-by-one error (should allow exactly 0 and 150), and validate_record is missing error accumulation (returns on first error instead of collecting all).",
+    "hints": [
+      "Email regex should use \\S+ (non-whitespace) not .+ (any character).",
+      "Age boundary: 0 <= age <= 150, not 0 < age < 150.",
+      "Collect all errors into a list and return them all, not just the first."
+    ],
+    "initial_code": {
+      "validator.py": "import re\n\ndef validate_email(email):\n    pattern = r'.+@.+\\..+'\n    return bool(re.match(pattern, email))\n\ndef validate_age(age):\n    return 0 < age < 150\n\ndef validate_record(record):\n    if not validate_email(record.get('email', '')):\n        return 'Invalid email'\n    if not validate_age(record.get('age', -1)):\n        return 'Invalid age'\n    return 'OK'\n"
+    },
+    "solution": {
+      "validator.py": "import re\n\ndef validate_email(email):\n    pattern = r'\\S+@\\S+\\.\\S+'\n    return bool(re.match(pattern, email))\n\ndef validate_age(age):\n    return 0 <= age <= 150\n\ndef validate_record(record):\n    errors = []\n    if not validate_email(record.get('email', '')):\n        errors.append('Invalid email')\n    if not validate_age(record.get('age', -1)):\n        errors.append('Invalid age')\n    return errors if errors else 'OK'\n"
+    },
+    "tests": {
+      "validator.py": [
+        {
+          "name": "syntax_valid",
+          "parses": true
+        },
+        {
+          "name": "email_no_spaces",
+          "contains": ["\\S+"],
+          "not_contains": [".+@.+"],
+          "hint": "Email regex should use \\\\S+ to reject spaces."
+        },
+        {
+          "name": "age_inclusive_bounds",
+          "contains": ["0 <= age <= 150"],
+          "not_contains": ["0 < age < 150"],
+          "hint": "Age boundaries should be inclusive (<=)."
+        },
+        {
+          "name": "collects_all_errors",
+          "contains": ["errors = []", "errors.append"],
+          "hint": "Collect all validation errors, don't return on the first one."
+        }
+      ]
+    }
+  }
+]

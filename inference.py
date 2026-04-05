@@ -17,7 +17,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 # OpenEnv Environment Configuration
-ENV_URL = os.getenv("ENV_URL", "http://localhost:7860")
+ENV_URL = os.getenv("ENV_URL", "https://bhoomiladia-coder-env.hf.space")
 
 MAX_STEPS = 10
 TEMPERATURE = 0.2

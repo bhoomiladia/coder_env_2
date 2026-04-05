@@ -1,1 +1,187 @@
----\ntitle: CodeDebtRefactor\nemoji: 🔧\ncolorFrom: indigo\ncolorTo: green\nsdk: docker\npinned: false\n---\n\n# CodeDebtRefactor — Technical Debt Remediation RL Environment\n<p align="center">\n  <em>An OpenEnv-compliant reinforcement learning environment for testing and training AI Agents on automated code reviews, syntax debugging, and security remediation.</em>\n</p>\n\n## 🚀 Overview\n\nThe **CodeDebtRefactor** environment simulates a broken Python project directory exposing an AI agent to varying levels of technical debt. Agents are tasked with iteratively reading files, running linters, testing their modifications, and patching code until the environment issues a `Reward: 1.0` indicating a complete and secure fix.\n\n### Key Features\n- **Strict OpenEnv Compliance:** Exposes native REST endpoints (`/reset`, `/step`) alongside required Pydantic Action/Observation schemas.\n- **Dynamic Virtual Directory:** Features an in-memory filesystem allowing agents to safely investigate, format, and execute python scripts without damaging host environments.\n- **Multi-Signal Reward Engine:** Grades agent patches strictly across 4 metrics: *Syntax Integrity*, *Runtime Logic Verification*, *Security Audits (AST analysis)*, and *Code Similarity Tracking*.\n- **Built-in Inference Loop:** Ships with an automated baseline script mapping strictly to OpenAI-compliant models (like Groq) incorporating `START/STEP/END` tracing.\n\n---\n\n## 🛠️ The Task Dataset (`tasks.json`)\n\nThe environment cycles through **9 dynamically loaded tasks** built to test diverse capabilities:\n\n| Difficulty | Category | Challenge Highlight |\n|---|---|---|\n| **Easy** | Syntax | Patch runtime structural faults (e.g., missing colons, indentation drops). |\n| **Medium** | Logic | Refactor infinite loops, memory leaks, and `IndexError` bugs. |\n| **Hard** | Security | Migrate MD5 cryptography to SHA256, sanitize multi-file raw SQL injections, and harden session tokens. |\n\n---\n\n## 💻 Local Testing Architecture\n\n### 1. Boot the RL Environment\nThe backend server is responsible for parsing filesystem states, scoring logic, and generating diagnostic logs.\n```bash\n# Install definitions\npip install -e .\n\n# Launch the FastAPI OpenEnv Server locally\nserver\n```\n*API and OpenAPI docs will boot on `http://localhost:7860/docs`.*\n\n### 2. Configure your AI Agent\nThe baseline `inference.py` script leverages your environment securely. Map `.env.local` to your preferred OpenAI-compatible provider (e.g. Groq):\n```ini\nAPI_BASE_URL=https://api.groq.com/openai/v1\nMODEL_NAME=llama-3.3-70b-versatile\nHF_TOKEN=gsk_your_api_token\n```\n\n### 3. Run Autonomous Evaluation\nTest your environment against the 70-Billion parameter LLaMA agent natively with OpenEnv lifecycle tracking logic:\n```bash\npython inference.py\n```\n\n---\n\n## ✅ Validation & Deployment\n\nBefore submitting your Hugging Face Space, you must pass the OpenEnv integration validator which asserts Docker availability and schema typing constraints.\n\n**If using Git Bash:**\n```bash\nbash validate-submission.sh "http://localhost:7860"\n```\n\n**If using native Windows Command Prompt:**\n```cmd\nopenenv validate --url "http://localhost:7860"\n```\n\n## 🐳 Containerization\nAutomated orchestration logic via Docker:\n```bash\ndocker build -t code-debt-refactor .\ndocker run -p 7860:7860 code-debt-refactor\n```\n\n*Read more about deployment architectures at [Hugging Face Spaces Configurations](https://huggingface.co/docs/hub/spaces-config-reference).*\n
+---
+title: CodeDebtRefactor
+emoji: 🔧
+colorFrom: indigo
+colorTo: green
+sdk: docker
+pinned: false
+---
+
+# CodeDebtRefactor
+
+**An OpenEnv-compliant reinforcement learning environment for testing and training AI agents on automated code reviews, syntax debugging, and security remediation.**
+
+---
+
+## Overview
+
+The **CodeDebtRefactor** environment simulates a broken Python project directory, exposing an AI agent to varying levels of technical debt. Agents iteratively read files, run linters, test modifications, and patch code until the environment issues a `Reward: 1.0` — indicating a complete and secure fix.
+
+### Key Features
+
+- **OpenEnv Compliant** — Exposes standard REST endpoints (`/reset`, `/step`) with Pydantic Action/Observation schemas.
+- **Virtual Filesystem** — In-memory file system lets agents safely read, write, and execute Python scripts.
+- **Multi-Signal Rewards** — Patches are graded across 4 metrics: Syntax (0.15), Security (0.25), Logic (0.20), and Similarity (0.40).
+- **Structured Logging** — Built-in `START` / `STEP` / `END` stdout markers for OpenEnv lifecycle tracing.
+
+---
+
+## Task Dataset
+
+9 tasks are defined in `tasks.json` across 3 difficulty tiers:
+
+| Difficulty | Category | Example Challenge |
+|------------|----------|-------------------|
+| Easy       | Syntax   | Fix a missing colon in a function definition |
+| Medium     | Logic    | Refactor infinite loops and `IndexError` bugs |
+| Hard       | Security | Migrate MD5 to SHA256, sanitize SQL injections |
+
+---
+
+## Environment API
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/reset` | POST   | Initialize a task. Body: `{"task_id": 0}` |
+| `/step`  | POST   | Submit an action. Body: `{"action": {...}, "timeout_s": 30}` |
+| `/docs`  | GET    | OpenAPI documentation (Swagger UI) |
+
+### Available Agent Commands
+
+| Command | Description |
+|---------|-------------|
+| `READ_FILE` | Read contents of a file in the virtual directory |
+| `WRITE_FILE` | Write/overwrite a file with patched content |
+| `RUN_LINTER` | Run syntax and style checks on a file |
+| `RUN_TESTS` | Execute test suite against the current state |
+| `LIST_FILES` | List all files in the virtual project directory |
+
+---
+
+## Quick Start
+
+### 1. Install
+
+```bash
+pip install -e .
+```
+
+### 2. Start the Server
+
+```bash
+server
+```
+
+The API boots at `http://localhost:7860`. Docs are available at `http://localhost:7860/docs`.
+
+### 3. Configure Environment Variables
+
+Create a `.env.local` file with:
+
+```ini
+API_BASE_URL=https://api.groq.com/openai/v1
+MODEL_NAME=llama-3.3-70b-versatile
+HF_TOKEN=<your-api-token>
+```
+
+| Variable | Default | Required |
+|----------|---------|----------|
+| `API_BASE_URL` | `https://api.openai.com/v1` | No |
+| `MODEL_NAME` | `gpt-4o-mini` | No |
+| `HF_TOKEN` | — | **Yes** |
+
+### 4. Run Inference
+
+```bash
+python inference.py
+```
+
+This runs the baseline agent across all 9 tasks automatically and outputs structured logs:
+
+```
+Connecting to environment at http://localhost:7860...
+
+--- Evaluating Task 0 ---
+START
+STEP
+Step 1: Agent suggested -> WRITE_FILE on app.py
+
+Task Complete! Final Reward: 1.0
+END
+```
+
+---
+
+## Validation
+
+Before submitting, validate your environment meets OpenEnv specifications:
+
+```bash
+bash validate-submission.sh "http://localhost:7860"
+```
+
+Or directly via the CLI:
+
+```bash
+openenv validate --url "http://localhost:7860"
+```
+
+---
+
+## Reward Breakdown
+
+Each step returns a detailed diagnostic payload:
+
+```json
+{
+  "diagnostics": [
+    {
+      "file": "db.py",
+      "line": "6",
+      "severity": "high",
+      "category": "security",
+      "message": "SQL injection risk detected"
+    }
+  ],
+  "reward_breakdown": {
+    "syntax": 1.0,
+    "security": 0.0,
+    "logic": 0.5,
+    "similarity": 0.3
+  }
+}
+```
+
+---
+
+## Project Structure
+
+```
+coder_env_2/
+├── server/
+│   ├── app.py              # FastAPI entry point
+│   └── environment.py      # Core RL environment logic
+├── models.py               # Pydantic Action/Observation schemas
+├── tasks.json              # 9 task definitions (easy/medium/hard)
+├── inference.py            # Baseline agent with START/STEP/END logging
+├── validate-submission.sh  # OpenEnv compliance checker
+├── Dockerfile              # Container deployment config
+├── pyproject.toml          # Package and dependency definitions
+└── .env.local              # Local environment variables (not committed)
+```
+
+---
+
+## Docker
+
+```bash
+docker build -t code-debt-refactor .
+docker run -p 7860:7860 code-debt-refactor
+```
+
+---
+
+## Links
+
+- [OpenEnv Framework](https://github.com/deepfabric/openenv)
+- [Hugging Face Spaces Config Reference](https://huggingface.co/docs/hub/spaces-config-reference)

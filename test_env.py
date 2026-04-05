@@ -5,9 +5,16 @@ import sys
 import tkinter as tk
 from tkinter import ttk, scrolledtext
 from groq import Groq
+import os
+from dotenv import load_dotenv
 
-BASE_URL = "https://bhoomiladia-coder-env.hf.space"
-client = Groq(api_key="groq_api")
+# Load variables from .env or .env.local
+load_dotenv(".env.local")
+load_dotenv(".env")
+
+BASE_URL = os.getenv("ENV_URL", "https://bhoomiladia-coder-env.hf.space")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") or "missing-groq-key"
+client = Groq(api_key=GROQ_API_KEY)
 
 SYSTEM_PROMPT = """You are a code fixing agent. Your ONLY job is to fix technical debt in Python files.
 

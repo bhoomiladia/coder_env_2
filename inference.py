@@ -104,7 +104,7 @@ def main():
         # --- [START] structured marker ---
         log(f"[START] task={task_name}")
 
-        final_reward = 0.0
+        final_reward = 0.01
         steps_taken = 0
 
         for step in range(1, MAX_STEPS + 1):
@@ -141,7 +141,7 @@ def main():
 
                 state_data = step_resp.json()
                 obs_data = state_data.get('observation', {})
-                reward = state_data.get("reward", 0.0)
+                reward = state_data.get("reward", 0.01)
                 final_reward = reward
                 steps_taken = step
 

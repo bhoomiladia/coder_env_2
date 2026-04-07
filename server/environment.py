@@ -510,7 +510,7 @@ class CodeDebtEnvironment(Environment):
         goal_files: Dict[str, str],
     ) -> tuple[float, Dict[str, float]]:
         if not goal_files:
-            return (0.0, {})
+            return (0.01, {})
 
         n = len(goal_files)
         syntax_ok = 0

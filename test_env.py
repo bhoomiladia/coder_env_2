@@ -163,7 +163,7 @@ What is your next action? Remember: fix debt only, no new features. Respond in r
 
         # ── termination ──
         if obs['done']:
-            if obs['reward'] >= 1.0:
+            if obs['reward'] >= 0.99:
                 print(f"\n✅ Task {task_id} solved in {step} steps! Final reward: {obs['reward']:.4f}")
             else:
                 print(f"\n⏱ Max steps reached. Final reward: {obs['reward']:.4f}")

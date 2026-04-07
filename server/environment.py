@@ -128,7 +128,7 @@ class CodeDebtEnvironment(Environment):
                     f"[0, {len(self._tasks) - 1}]."
                 ),
                 done=True,
-                reward=0.0,
+                reward=0.01,
                 last_action_error=f"Invalid task_id: {task_id}",
                 available_files=[],
             )
@@ -162,7 +162,7 @@ class CodeDebtEnvironment(Environment):
                 f"Goal: {task.get('description', 'Fix the code.')}"
             ),
             code_view=dict(self._state.files),
-            reward=0.0,
+            reward=0.01,
             done=False,
             goal=task.get("description", "Fix the technical debt."),
             last_action_error=None,
@@ -185,7 +185,7 @@ class CodeDebtEnvironment(Environment):
                     "Error: no active session. Please call /reset first."
                 ),
                 done=True,
-                reward=0.0,
+                reward=0.01,
                 last_action_error="Session not initialised.",
                 available_files=[],
             )
@@ -225,11 +225,11 @@ class CodeDebtEnvironment(Environment):
         diagnostics = self._run_all_checks(self._state.files)
 
         # ---- termination ----
-        done = (reward >= 1.0) or (
+        done = (reward >= 0.99) or (
             self._state.step_count >= self._state.max_steps
         )
 
-        if done and reward < 1.0:
+        if done and reward < 0.99:
             terminal_output += "\n⏱ Step budget exhausted."
         elif done:
             terminal_output += "\n✅ All issues resolved! Task complete."
@@ -544,9 +544,12 @@ class CodeDebtEnvironment(Environment):
         }
 
         total = sum(REWARD_WEIGHTS[k] * breakdown[k] for k in REWARD_WEIGHTS)
-        total = max(0.0, min(1.0, total))
+        total = max(0.01, min(0.99, total))
 
-        return (round(total, 4), {k: round(v, 4) for k, v in breakdown.items()})
+        return (
+            round(total, 4),
+            {k: max(0.01, min(0.99, round(v, 4))) for k, v in breakdown.items()},
+        )
 
     # ------------------------------------------------------------------
     # Virtual test runner

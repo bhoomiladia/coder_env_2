@@ -6,7 +6,7 @@ following the OpenEnv framework's Pydantic-based model system.
 
 from typing import Dict, List, Literal, Optional
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from openenv.core.env_server import Action, Observation, State
 
@@ -57,6 +57,17 @@ class TerminalObservation(Observation):
     diagnostics: List[Dict[str, str]] = Field(default_factory=list)
     reward_breakdown: Dict[str, float] = Field(default_factory=dict)
     available_files: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _clamp_reward(self) -> "TerminalObservation":
+        """Ensure reward is always strictly between 0 and 1."""
+        r = self.reward
+        if r is None or not isinstance(r, (int, float)) or isinstance(r, bool):
+            object.__setattr__(self, "reward", 0.01)
+        else:
+            clamped = max(0.01, min(0.99, float(r)))
+            object.__setattr__(self, "reward", clamped)
+        return self
 
 
 # ---------------------------------------------------------------------------

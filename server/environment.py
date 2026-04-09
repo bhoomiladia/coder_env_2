@@ -510,9 +510,9 @@ class CodeDebtEnvironment(Environment):
         goal_files: Dict[str, str],
     ) -> tuple[float, Dict[str, float]]:
         if not goal_files:
-            return (0.01, {})
+            return (0.01, {"syntax": 0.01, "security": 0.01, "logic": 0.01, "similarity": 0.01})
 
-        n = len(goal_files)
+        n = max(len(goal_files), 1)
         syntax_ok = 0
         security_ok = 0
         logic_ok = 0
@@ -537,19 +537,22 @@ class CodeDebtEnvironment(Environment):
             total_sim += seq.ratio()
 
         breakdown = {
-            "syntax": syntax_ok / n,
-            "security": security_ok / n,
-            "logic": logic_ok / n,
-            "similarity": total_sim / n,
+            "syntax": float(syntax_ok) / n,
+            "security": float(security_ok) / n,
+            "logic": float(logic_ok) / n,
+            "similarity": float(total_sim) / n,
         }
 
         total = sum(REWARD_WEIGHTS[k] * breakdown[k] for k in REWARD_WEIGHTS)
-        total = max(0.01, min(0.99, total))
+        # Clamp strictly within (0, 1) — never exactly 0.0 or 1.0
+        total = float(max(0.01, min(0.99, total)))
 
-        return (
-            round(total, 4),
-            {k: max(0.01, min(0.99, round(v, 4))) for k, v in breakdown.items()},
-        )
+        clamped_breakdown = {
+            k: float(max(0.01, min(0.99, round(v, 4))))
+            for k, v in breakdown.items()
+        }
+
+        return (round(total, 4), clamped_breakdown)
 
     # ------------------------------------------------------------------
     # Virtual test runner
